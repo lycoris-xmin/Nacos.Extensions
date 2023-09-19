@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{31988E63-C86A-4208-8E13-D474CA7EAA3E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{6DB3EC94-2D18-479F-8119-72863CE0FEF2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lycoris.Nacos.Extensions", "src\Lycoris.Nacos.Extensions\Lycoris.Nacos.Extensions.csproj", "{98415B5D-2B5D-4E25-BCEF-0DE1F94D97B4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nacos.Sample1", "samples\Nacos.Sample1\Nacos.Sample1.csproj", "{E9F32691-67C7-41F9-ABC1-A7D529051BBD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{98415B5D-2B5D-4E25-BCEF-0DE1F94D97B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98415B5D-2B5D-4E25-BCEF-0DE1F94D97B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98415B5D-2B5D-4E25-BCEF-0DE1F94D97B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98415B5D-2B5D-4E25-BCEF-0DE1F94D97B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9F32691-67C7-41F9-ABC1-A7D529051BBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9F32691-67C7-41F9-ABC1-A7D529051BBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9F32691-67C7-41F9-ABC1-A7D529051BBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9F32691-67C7-41F9-ABC1-A7D529051BBD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{98415B5D-2B5D-4E25-BCEF-0DE1F94D97B4} = {31988E63-C86A-4208-8E13-D474CA7EAA3E}
+		{E9F32691-67C7-41F9-ABC1-A7D529051BBD} = {6DB3EC94-2D18-479F-8119-72863CE0FEF2}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {155A4F88-F967-455E-83A4-F3E3EAA2D080}
+	EndGlobalSection
+EndGlobal

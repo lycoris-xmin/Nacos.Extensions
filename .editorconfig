@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# CA2208: 正确实例化参数异常
+dotnet_diagnostic.CA2208.severity = none

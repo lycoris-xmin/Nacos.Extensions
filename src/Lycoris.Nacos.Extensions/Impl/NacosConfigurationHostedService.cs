@@ -1,8 +1,8 @@
 ﻿using Lycoris.Base.Extensions;
-using Lycoris.Base.Logging;
 using Lycoris.Nacos.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Lycoris.Nacos.Extensions.Impl
 {
@@ -36,7 +36,7 @@ namespace Lycoris.Nacos.Extensions.Impl
         /// <returns></returns>
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var factory = provider.GetService<ILycorisLoggerFactory>();
+            var factory = provider.GetService<ILoggerFactory>();
 
             // 初始化处理
             if (this.configurations.HasValue())

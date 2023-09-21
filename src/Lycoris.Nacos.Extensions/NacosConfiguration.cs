@@ -1,6 +1,6 @@
 ﻿using Lycoris.Base.Extensions;
-using Lycoris.Base.Logging;
 using Lycoris.Nacos.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Lycoris.Nacos.Extensions
@@ -39,7 +39,7 @@ namespace Lycoris.Nacos.Extensions
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="configuration"></param>
-        public virtual void Listener(ILycorisLogger? logger, string? configuration) => Received(configuration.ToObject<T>());
+        public virtual void Listener(ILogger? logger, string? configuration) => Received(configuration.ToObject<T>());
 
         /// <summary>
         /// 

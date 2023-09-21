@@ -1,4 +1,6 @@
-﻿using Lycoris.Base.Logging;
+﻿
+
+using Microsoft.Extensions.Logging;
 
 namespace Lycoris.Nacos.Extensions.Options
 {
@@ -32,7 +34,6 @@ namespace Lycoris.Nacos.Extensions.Options
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="configuration"></param>
-        /// <returns></returns>
-        void Listener(ILycorisLogger? logger, string? configuration);
+        void Listener(ILogger? logger, string? configuration);
     }
 }

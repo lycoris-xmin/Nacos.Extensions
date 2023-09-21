@@ -28,7 +28,7 @@ namespace Lycoris.Nacos.Extensions
             if (value.IsNullOrEmpty())
                 return defaultValue.Trim();
             else
-                return value.Trim();
+                return value!.Trim();
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Lycoris.Nacos.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static T GetConfig<T>(this string key)
+        public static T? GetConfig<T>(this string key)
         {
             if (Configuration == null)
                 throw new ArgumentNullException(nameof(Configuration));

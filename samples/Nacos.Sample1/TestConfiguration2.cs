@@ -1,5 +1,4 @@
-﻿using Lycoris.Base.Logging;
-using Lycoris.Nacos.Extensions;
+﻿using Lycoris.Nacos.Extensions;
 
 namespace Nacos.Sample1
 {
@@ -17,9 +16,11 @@ namespace Nacos.Sample1
         /// </summary>
         public int PhoneQuickLoginDayMaxCount { get; set; }
 
-        public override void Listener(ILycorisLogger? logger, string? configuration)
+        public override void Listener(ILogger? logger, string? configuration)
         {
-            logger?.Warn("Authentication.Galaxy.Configuration" + configuration);
+            logger?.LogInformation(configuration);
+
+            base.Listener(logger, configuration);
         }
     }
 }

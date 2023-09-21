@@ -1,5 +1,4 @@
 ﻿using Lycoris.Base.Extensions;
-using Lycoris.Base.Logging;
 using Lycoris.Nacos.Extensions.Builder;
 using Lycoris.Nacos.Extensions.Exceptions;
 using Lycoris.Nacos.Extensions.Impl;
@@ -31,40 +30,37 @@ namespace Lycoris.Nacos.Extensions
 
             if (setting.ModelIsValid && setting.Listeners.Any())
             {
-                builder.Host.ConfigureAppConfiguration((context, builder) =>
+                builder.Configuration.AddNacosV2Configuration(opt =>
                 {
-                    builder.AddNacosV2Configuration(opt =>
+                    if (!setting.AccessKey.IsNullOrEmpty() || !setting.SecretKey.IsNullOrEmpty())
                     {
-                        if (!setting.AccessKey.IsNullOrEmpty() || !setting.SecretKey.IsNullOrEmpty())
-                        {
-                            if (setting.AccessKey.IsNullOrEmpty())
-                                throw new ArgumentNullException(setting.AccessKey);
-                            else if (setting.SecretKey.IsNullOrEmpty())
-                                throw new ArgumentNullException(setting.SecretKey);
+                        if (setting.AccessKey.IsNullOrEmpty())
+                            throw new ArgumentNullException(setting.AccessKey);
+                        else if (setting.SecretKey.IsNullOrEmpty())
+                            throw new ArgumentNullException(setting.SecretKey);
 
-                            opt.AccessKey = setting.AccessKey;
-                            opt.SecretKey = setting.SecretKey;
-                        }
-                        else
-                        {
-                            if (setting.UserName.IsNullOrEmpty())
-                                throw new ArgumentNullException(setting.UserName);
-                            else if (setting.Password.IsNullOrEmpty())
-                                throw new ArgumentNullException(setting.Password);
+                        opt.AccessKey = setting.AccessKey;
+                        opt.SecretKey = setting.SecretKey;
+                    }
+                    else
+                    {
+                        if (setting.UserName.IsNullOrEmpty())
+                            throw new ArgumentNullException(setting.UserName);
+                        else if (setting.Password.IsNullOrEmpty())
+                            throw new ArgumentNullException(setting.Password);
 
-                            opt.UserName = setting.UserName;
-                            opt.Password = setting.Password;
-                        }
+                        opt.UserName = setting.UserName;
+                        opt.Password = setting.Password;
+                    }
 
-                        opt.ServerAddresses = setting.Server;
-                        opt.DefaultTimeOut = setting.DefaultTimeOut;
-                        opt.Namespace = setting.Namespace;
-                        opt.ListenInterval = setting.ListenInterval;
-                        opt.ConfigUseRpc = setting.ConfigUseRpc;
-                        opt.NamingUseRpc = setting.NamingUseRpc;
-                        opt.NamingLoadCacheAtStart = setting.NamingLoadCacheAtStart;
-                        opt.Listeners = setting.Listeners;
-                    });
+                    opt.ServerAddresses = setting.Server;
+                    opt.DefaultTimeOut = setting.DefaultTimeOut;
+                    opt.Namespace = setting.Namespace;
+                    opt.ListenInterval = setting.ListenInterval;
+                    opt.ConfigUseRpc = setting.ConfigUseRpc;
+                    opt.NamingUseRpc = setting.NamingUseRpc;
+                    opt.NamingLoadCacheAtStart = setting.NamingLoadCacheAtStart;
+                    opt.Listeners = setting.Listeners;
                 });
 
                 NacosAppSettings.Configuration = builder.Configuration;
@@ -247,8 +243,6 @@ namespace Lycoris.Nacos.Extensions
                     // 启用任务
                     services.AddHostedService(isp => new NacosConfigurationHostedService(isp, setting.GetConfigurations));
                 }
-
-                services.AddDefaultLoggerFactory();
             }
 
             return services;
@@ -299,10 +293,7 @@ namespace Lycoris.Nacos.Extensions
                 services.AddTransient<INacosHttpClient, NacosHttpClient>();
 
             if (builder.EnableLogger)
-            {
-                services.AddDefaultLoggerFactory();
                 services.TryAddSingleton<INacosHttpClientLogger, NacosHttpClientLogger>();
-            }
 
             return services;
         }

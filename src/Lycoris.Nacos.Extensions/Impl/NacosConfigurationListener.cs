@@ -1,6 +1,6 @@
-﻿using Lycoris.Base.Logging;
-using Lycoris.Nacos.Extensions.Options;
+﻿using Lycoris.Nacos.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Nacos.V2;
 
 namespace Lycoris.Nacos.Extensions.Impl
@@ -30,15 +30,7 @@ namespace Lycoris.Nacos.Extensions.Impl
         /// </summary>
         private readonly Type ConfigurationType;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        private readonly ILycorisLoggerFactory? _loggerFactory;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private readonly ILycorisLogger? _logger;
+        private readonly ILoggerFactory? _factory;
 
         /// <summary>
         /// 
@@ -53,30 +45,13 @@ namespace Lycoris.Nacos.Extensions.Impl
             this.DataId = this.Configuration!.DataId;
             this.Group = this.Configuration!.Group;
 
-            this._loggerFactory = provider.GetService<ILycorisLoggerFactory>();
-            this._logger = this._loggerFactory?.CreateLogger<NacosConfigurationListener>();
+            this._factory = provider.GetService<ILoggerFactory>();
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="configInfo"></param>
-        /// <exception cref="NotImplementedException"></exception>
-        public void ReceiveConfigInfo(string configInfo)
-        {
-            _logger?.Info($"nacso configuration({this.Group}.{this.DataId}) received - {configInfo}");
-
-            if (this.Configuration != null)
-            {
-                try
-                {
-                    this.Configuration!.Listener(this._loggerFactory?.CreateLogger(this.ConfigurationType), configInfo);
-                }
-                catch (Exception ex)
-                {
-                    _logger?.Error($"nacos configuration listener handle exception:{ex.GetType().FullName}", ex);
-                }
-            }
-        }
+        public void ReceiveConfigInfo(string configInfo) => this.Configuration!.Listener(_factory?.CreateLogger(this.Configuration.GetType()), configInfo);
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Lycoris.Base.Extensions;
-using Lycoris.Base.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Text;
@@ -11,7 +11,7 @@ namespace Lycoris.Nacos.Extensions.Impl
     /// </summary>
     public sealed class NacosHttpClientLogger : INacosHttpClientLogger
     {
-        private readonly ILycorisLogger _logger;
+        private readonly ILogger _logger;
         private readonly NacosHttpClientConfig config;
 
         /// <summary>
@@ -19,7 +19,7 @@ namespace Lycoris.Nacos.Extensions.Impl
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="options"></param>
-        public NacosHttpClientLogger(ILycorisLoggerFactory factory, IOptions<NacosHttpClientConfig> options)
+        public NacosHttpClientLogger(ILoggerFactory factory, IOptions<NacosHttpClientConfig> options)
         {
             _logger = factory.CreateLogger<NacosHttpClient>();
             config = options.Value;
@@ -39,18 +39,18 @@ namespace Lycoris.Nacos.Extensions.Impl
 
             try
             {
-                _logger?.Info($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - request {requestMessage.Method} {requestMessage.RequestUri!} {requestMessage.Version}");
+                _logger?.LogInformation($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - request {requestMessage.Method} {requestMessage.RequestUri!} {requestMessage.Version}");
 
                 RequestHeaderFilter(traceId, requestId, requestMessage);
 
                 if (!string.IsNullOrEmpty(content))
                 {
-                    _logger?.Info($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - request body: {content}");
+                    _logger?.LogInformation($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - request body: {content}");
                 }
             }
             catch (Exception ex)
             {
-                _logger?.Error($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - request logging failed", ex);
+                _logger?.LogError(ex, $"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - request logging failed");
             }
         }
 
@@ -113,7 +113,7 @@ namespace Lycoris.Nacos.Extensions.Impl
                 sb.AppendFormat("{0}:{1};", key, value);
             }
 
-            _logger?.Info($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - response headers:[{sb.ToString().TrimEnd(';')}]");
+            _logger?.LogInformation($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - response headers:[{sb.ToString().TrimEnd(';')}]");
         }
 
         /// <summary>
@@ -133,16 +133,16 @@ namespace Lycoris.Nacos.Extensions.Impl
 
                 if (response.Success)
                 {
-                    _logger?.Info($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - response body: {response.Content} - statuscode: {response.HttpStatusCode}");
+                    _logger?.LogInformation($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - response body: {response.Content} - statuscode: {response.HttpStatusCode}");
                 }
                 else
                 {
-                    _logger?.Error($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - response exceotion:{response.Exception!.Message}\r\n{response.Exception!.StackTrace}");
+                    _logger?.LogError($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - response exceotion:{response.Exception!.Message}\r\n{response.Exception!.StackTrace}");
                 }
             }
             catch (Exception ex)
             {
-                _logger?.Error($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - response logging failed", ex);
+                _logger?.LogError(ex, $"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - response logging failed");
             }
         }
 
@@ -193,7 +193,7 @@ namespace Lycoris.Nacos.Extensions.Impl
                 sb.AppendFormat("{0}:{1};", key, value);
             }
 
-            _logger?.Info($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - response headers:[{sb.ToString().TrimEnd(';')}]");
+            _logger?.LogInformation($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - response headers:[{sb.ToString().TrimEnd(';')}]");
         }
 
         /// <summary>

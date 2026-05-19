@@ -7,7 +7,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>Lycoris</Authors>
     <VersionPrefix>8.0.0</VersionPrefix>
-    <PackageIcon>lycoris-nuget-logo.png</PackageIcon>
+    <PackageIcon></PackageIcon>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/lycoris-xmin/Lycoris.Nacos.Extensions.git</RepositoryUrl>
@@ -15,10 +15,6 @@
 
   <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
-    <None Include="..\lycoris-nuget-logo.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
     <None Include="..\Readme.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

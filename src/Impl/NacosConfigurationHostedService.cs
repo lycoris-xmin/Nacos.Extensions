@@ -1,4 +1,3 @@
-﻿using Lycoris.Base.Extensions;
 using Lycoris.Nacos.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -7,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace Lycoris.Nacos.Extensions.Impl
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public class NacosConfigurationHostedService : IHostedService
     {
@@ -17,7 +16,7 @@ namespace Lycoris.Nacos.Extensions.Impl
         private readonly IEnumerable<NacosConfigurationListener> listeners;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="provider"></param>
         /// <param name="configurations"></param>
@@ -30,7 +29,7 @@ namespace Lycoris.Nacos.Extensions.Impl
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -39,13 +38,13 @@ namespace Lycoris.Nacos.Extensions.Impl
             var factory = provider.GetService<ILoggerFactory>();
 
             // 初始化处理
-            if (this.configurations.HasValue())
+            if (this.configurations.Count > 0)
             {
-                foreach (var item in this.configurations!)
+                foreach (var item in this.configurations)
                 {
                     var configuration = item(provider);
 
-                    if (configuration!.DataId.IsNullOrEmpty() || configuration!.Group.IsNullOrEmpty())
+                    if (string.IsNullOrEmpty(configuration!.DataId) || string.IsNullOrEmpty(configuration!.Group))
                         continue;
 
                     var data = await configurationService.GetConfigurationAsync(configuration!.DataId!, configuration!.Group!).ConfigureAwait(false);
@@ -54,11 +53,11 @@ namespace Lycoris.Nacos.Extensions.Impl
             }
 
             // 监听处理
-            if (this.listeners.HasValue())
+            if (this.listeners.Any())
             {
                 foreach (var item in this.listeners)
                 {
-                    if (item!.DataId.IsNullOrEmpty() || item!.Group.IsNullOrEmpty())
+                    if (string.IsNullOrEmpty(item!.DataId) || string.IsNullOrEmpty(item!.Group))
                         continue;
 
                     await configurationService.AddConfigListenerAsync(item.DataId!, item.Group!, item);
@@ -67,19 +66,19 @@ namespace Lycoris.Nacos.Extensions.Impl
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            if (this.listeners.HasValue())
+            if (this.listeners.Any())
             {
                 try
                 {
                     foreach (var item in this.listeners)
                     {
-                        if (item!.DataId.IsNullOrEmpty() || item!.Group.IsNullOrEmpty())
+                        if (string.IsNullOrEmpty(item!.DataId) || string.IsNullOrEmpty(item!.Group))
                             continue;
 
                         await configurationService.RemoveConfigListenerAsync(item.DataId!, item.Group!, item);

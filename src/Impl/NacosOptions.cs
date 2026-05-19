@@ -1,5 +1,4 @@
-﻿using Lycoris.Base.Extensions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace Lycoris.Nacos.Extensions.Impl
 {
@@ -35,9 +34,9 @@ namespace Lycoris.Nacos.Extensions.Impl
         /// <returns></returns>
         public async Task PushAsync()
         {
-            if (this.Value!.DataId.IsNullOrEmpty())
+            if (string.IsNullOrEmpty(this.Value!.DataId))
                 throw new ArgumentNullException(nameof(this.Value.DataId));
-            else if (this.Value!.Group.IsNullOrEmpty())
+            else if (string.IsNullOrEmpty(this.Value!.Group))
                 throw new ArgumentNullException(nameof(this.Value.Group));
 
             await _configurationService.PublishConfigurationAsync(this.Value!.DataId!, this.Value!.Group!, this.Value, this.Value.NacosConfigurationType);
@@ -49,9 +48,9 @@ namespace Lycoris.Nacos.Extensions.Impl
         /// <returns></returns>
         public async Task PullAsync()
         {
-            if (this.Value!.DataId.IsNullOrEmpty())
+            if (string.IsNullOrEmpty(this.Value!.DataId))
                 throw new ArgumentNullException(nameof(this.Value.DataId));
-            else if (this.Value!.Group.IsNullOrEmpty())
+            else if (string.IsNullOrEmpty(this.Value!.Group))
                 throw new ArgumentNullException(nameof(this.Value.Group));
 
             this.Value = await _configurationService.GetConfigurationAsync<T>(this.Value!.DataId!, this.Value!.Group!);
@@ -63,9 +62,9 @@ namespace Lycoris.Nacos.Extensions.Impl
         /// <returns></returns>
         public async Task RemoveAsync()
         {
-            if (this.Value!.DataId.IsNullOrEmpty())
+            if (string.IsNullOrEmpty(this.Value!.DataId))
                 throw new ArgumentNullException(nameof(this.Value.DataId));
-            else if (this.Value!.Group.IsNullOrEmpty())
+            else if (string.IsNullOrEmpty(this.Value!.Group))
                 throw new ArgumentNullException(nameof(this.Value.Group));
 
             await _configurationService.RemoveConfigurationAsync(this.Value!.DataId!, this.Value!.Group!);

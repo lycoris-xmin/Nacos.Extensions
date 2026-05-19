@@ -1,4 +1,4 @@
-﻿using Lycoris.Base.Extensions;
+﻿using Newtonsoft.Json;
 using Nacos.V2;
 using System.Diagnostics.CodeAnalysis;
 
@@ -44,7 +44,7 @@ namespace Lycoris.Nacos.Extensions.Impl
         /// <param name="type"></param>
         /// <returns></returns>
         public async Task<bool> PublishConfigurationAsync<T>(string dataId, string group, T value, string type = "json") where T : class
-            => await _nacosConfigService.PublishConfig(dataId, group, value.ToJson(), type);
+            => await _nacosConfigService.PublishConfig(dataId, group, JsonConvert.SerializeObject(value), type);
 
         /// <summary>
         /// 获取远端配置信息
@@ -56,7 +56,7 @@ namespace Lycoris.Nacos.Extensions.Impl
         public async Task<string?> GetConfigurationAsync(string dataId, string group, long timeout = 5000L)
         {
             var str = await _nacosConfigService.GetConfig(dataId, group, timeout);
-            if (str.IsNullOrEmpty())
+            if (string.IsNullOrEmpty(str))
                 return default;
 
             return str;
@@ -73,10 +73,10 @@ namespace Lycoris.Nacos.Extensions.Impl
         public async Task<T?> GetConfigurationAsync<T>(string dataId, string group, long timeout = 5000L)
         {
             var str = await _nacosConfigService.GetConfig(dataId, group, timeout);
-            if (str.IsNullOrEmpty())
+            if (string.IsNullOrEmpty(str))
                 return default;
 
-            return str.ToObject<T>();
+            return JsonConvert.DeserializeObject<T>(str);
         }
 
         /// <summary>

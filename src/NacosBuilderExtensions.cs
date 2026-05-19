@@ -1,7 +1,7 @@
-﻿using Lycoris.Base.Extensions;
-using Lycoris.Nacos.Extensions.Builder;
+﻿using Lycoris.Nacos.Extensions.Builder;
 using Lycoris.Nacos.Extensions.Exceptions;
 using Lycoris.Nacos.Extensions.Impl;
+using Lycoris.Nacos.Extensions.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,26 +32,9 @@ namespace Lycoris.Nacos.Extensions
             {
                 builder.Configuration.AddNacosV2Configuration(opt =>
                 {
-                    if (!setting.AccessKey.IsNullOrEmpty() || !setting.SecretKey.IsNullOrEmpty())
-                    {
-                        if (setting.AccessKey.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.AccessKey);
-                        else if (setting.SecretKey.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.SecretKey);
-
-                        opt.AccessKey = setting.AccessKey;
-                        opt.SecretKey = setting.SecretKey;
-                    }
-                    else
-                    {
-                        if (setting.UserName.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.UserName);
-                        else if (setting.Password.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.Password);
-
-                        opt.UserName = setting.UserName;
-                        opt.Password = setting.Password;
-                    }
+                    ApplyAuth(setting,
+                        (ak, sk) => { opt.AccessKey = ak; opt.SecretKey = sk; },
+                        (user, pwd) => { opt.UserName = user; opt.Password = pwd; });
 
                     opt.ServerAddresses = setting.Server;
                     opt.DefaultTimeOut = setting.DefaultTimeOut;
@@ -89,28 +72,11 @@ namespace Lycoris.Nacos.Extensions
 
                 services.AddNacosAspNet(opt =>
                 {
-                    if (!setting.AccessKey.IsNullOrEmpty() || !setting.SecretKey.IsNullOrEmpty())
-                    {
-                        if (setting.AccessKey.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.AccessKey);
-                        else if (setting.SecretKey.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.SecretKey);
+                    ApplyAuth(setting,
+                        (ak, sk) => { opt.AccessKey = ak; opt.SecretKey = sk; },
+                        (user, pwd) => { opt.UserName = user; opt.Password = pwd; });
 
-                        opt.AccessKey = setting.AccessKey;
-                        opt.SecretKey = setting.SecretKey;
-                    }
-                    else
-                    {
-                        if (setting.UserName.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.UserName);
-                        else if (setting.Password.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.Password);
-
-                        opt.UserName = setting.UserName;
-                        opt.Password = setting.Password;
-                    }
-
-                    if (!setting.Ip.IsNullOrEmpty())
+                    if (!string.IsNullOrEmpty(setting.Ip))
                         opt.Ip = setting.Ip;
 
                     opt.ServerAddresses = setting.Server;
@@ -132,8 +98,11 @@ namespace Lycoris.Nacos.Extensions
                     opt.NamingLoadCacheAtStart = setting.NamingLoadCacheAtStart;
 
                     //配置参数
-                    if (setting.Metadata.HasValue())
-                        setting.Metadata!.ForEach(x => opt.Metadata.Add(x.Key, x.Value));
+                    if (setting.Metadata?.Count > 0)
+                    {
+                        foreach (var kv in setting.Metadata)
+                            opt.Metadata.Add(kv.Key, kv.Value);
+                    }
                 });
             }
 
@@ -156,26 +125,9 @@ namespace Lycoris.Nacos.Extensions
                 // 配置管理
                 services.AddNacosV2Config(opt =>
                 {
-                    if (!setting.AccessKey.IsNullOrEmpty() || !setting.SecretKey.IsNullOrEmpty())
-                    {
-                        if (setting.AccessKey.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.AccessKey);
-                        else if (setting.SecretKey.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.SecretKey);
-
-                        opt.AccessKey = setting.AccessKey;
-                        opt.SecretKey = setting.SecretKey;
-                    }
-                    else
-                    {
-                        if (setting.UserName.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.UserName);
-                        else if (setting.Password.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.Password);
-
-                        opt.UserName = setting.UserName;
-                        opt.Password = setting.Password;
-                    }
+                    ApplyAuth(setting,
+                        (ak, sk) => { opt.AccessKey = ak; opt.SecretKey = sk; },
+                        (user, pwd) => { opt.UserName = user; opt.Password = pwd; });
 
                     opt.ServerAddresses = setting.Server;
                     opt.Namespace = setting.Namespace;
@@ -186,26 +138,9 @@ namespace Lycoris.Nacos.Extensions
                 // 服务管理
                 services.AddNacosV2Naming(opt =>
                 {
-                    if (!setting.AccessKey.IsNullOrEmpty() || !setting.SecretKey.IsNullOrEmpty())
-                    {
-                        if (setting.AccessKey.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.AccessKey);
-                        else if (setting.SecretKey.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.SecretKey);
-
-                        opt.AccessKey = setting.AccessKey;
-                        opt.SecretKey = setting.SecretKey;
-                    }
-                    else
-                    {
-                        if (setting.UserName.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.UserName);
-                        else if (setting.Password.IsNullOrEmpty())
-                            throw new ArgumentNullException(setting.Password);
-
-                        opt.UserName = setting.UserName;
-                        opt.Password = setting.Password;
-                    }
+                    ApplyAuth(setting,
+                        (ak, sk) => { opt.AccessKey = ak; opt.SecretKey = sk; },
+                        (user, pwd) => { opt.UserName = user; opt.Password = pwd; });
 
                     opt.ServerAddresses = setting.Server;
                     opt.Namespace = setting.Namespace;
@@ -218,17 +153,17 @@ namespace Lycoris.Nacos.Extensions
                 services.AddSingleton<INacosServerService, NacosServerService>();
 
                 // 配置监听处理
-                if (setting.Configurations.HasValue())
+                if (setting.Configurations.Count > 0)
                 {
-                    var unqualified = setting.Configurations.Where(x => x.DataId.IsNullOrEmpty() || x.Group.IsNullOrEmpty() || x.NacosConfigurationType.IsNullOrEmpty()).FirstOrDefault();
+                    var unqualified = setting.Configurations.Where(x => string.IsNullOrEmpty(x.DataId) || string.IsNullOrEmpty(x.Group) || string.IsNullOrEmpty(x.NacosConfigurationType)).FirstOrDefault();
                     if (unqualified != null)
                     {
                         var message = "";
-                        if (unqualified.DataId.IsNullOrEmpty())
+                        if (string.IsNullOrEmpty(unqualified.DataId))
                             message += "DataId not set";
-                        if (unqualified.Group.IsNullOrEmpty())
+                        if (string.IsNullOrEmpty(unqualified.Group))
                             message += "Group not set,";
-                        if (unqualified.NacosConfigurationType.IsNullOrEmpty())
+                        if (string.IsNullOrEmpty(unqualified.NacosConfigurationType))
                             message += "NacosConfigurationType not set";
 
                         throw new UnqualifiedNacosConfigurationException(unqualified.GetType().Name, message.TrimEnd(','));
@@ -296,6 +231,28 @@ namespace Lycoris.Nacos.Extensions
                 services.TryAddSingleton<INacosHttpClientLogger, NacosHttpClientLogger>();
 
             return services;
+        }
+
+        private static void ApplyAuth(NacosBaseOption setting,
+            Action<string?, string?> applyAkSk,
+            Action<string?, string?> applyUserPwd)
+        {
+            if (!string.IsNullOrEmpty(setting.AccessKey) || !string.IsNullOrEmpty(setting.SecretKey))
+            {
+                if (string.IsNullOrEmpty(setting.AccessKey))
+                    throw new ArgumentNullException(nameof(setting.AccessKey));
+                if (string.IsNullOrEmpty(setting.SecretKey))
+                    throw new ArgumentNullException(nameof(setting.SecretKey));
+                applyAkSk(setting.AccessKey, setting.SecretKey);
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(setting.UserName))
+                    throw new ArgumentNullException(nameof(setting.UserName));
+                if (string.IsNullOrEmpty(setting.Password))
+                    throw new ArgumentNullException(nameof(setting.Password));
+                applyUserPwd(setting.UserName, setting.Password);
+            }
         }
     }
 }

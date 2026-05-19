@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+	  <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>Lycoris</Authors>
-    <VersionPrefix>6.1.1</VersionPrefix>
+    <VersionPrefix>8.0.0</VersionPrefix>
     <PackageIcon>lycoris-nuget-logo.png</PackageIcon>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
@@ -14,20 +14,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\.editorconfig" Link=".editorconfig" />
-    <None Include="..\..\lycoris-nuget-logo.png">
+    <None Include="..\.editorconfig" Link=".editorconfig" />
+    <None Include="..\lycoris-nuget-logo.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Include="..\..\Readme.md">
+    <None Include="..\Readme.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lycoris.Common.Extensions" Version="6.1.0" />
     <PackageReference Include="nacos-sdk-csharp" Version="1.3.5" />
+    <PackageReference Include="Polly.Core" Version="8.5.2" />
     <PackageReference Include="nacos-sdk-csharp.AspNetCore" Version="1.3.5" />
     <PackageReference Include="nacos-sdk-csharp.Extensions.Configuration" Version="1.3.5" />
   </ItemGroup>

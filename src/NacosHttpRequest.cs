@@ -1,5 +1,5 @@
-﻿using Lycoris.Base.Extensions;
-using Lycoris.Nacos.Extensions.HttpRequest.Options;
+﻿using Lycoris.Nacos.Extensions.HttpRequest.Options;
+using Newtonsoft.Json;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
@@ -211,7 +211,7 @@ namespace Lycoris.Nacos.Extensions
         /// <param name="encoding"></param>
         public void AddJsonBody<T>(T body, Encoding? encoding = null) where T : class
         {
-            this.ContentBody = body.ToJson();
+            this.ContentBody = JsonConvert.SerializeObject(body);
             Body = new StringContent(this.ContentBody, encoding);
         }
 
@@ -259,7 +259,7 @@ namespace Lycoris.Nacos.Extensions
 
             Form ??= new MultipartFormDataContent();
 
-            if (fileName.IsNullOrEmpty())
+            if (string.IsNullOrEmpty(fileName))
                 Form.Add(new ByteArrayContent(bytes), key);
             else
                 Form.Add(new ByteArrayContent(bytes), key, fileName!);
@@ -275,7 +275,7 @@ namespace Lycoris.Nacos.Extensions
         internal HttpRequestMessage BuildHttpRequestMessage()
         {
             if (this.Body != null && this.Form != null)
-                throw new Exception("");
+                throw new InvalidOperationException("Cannot send both a JSON body and form data in the same request. Use either AddJsonBody or AddFormData, not both.");
 
             this.TraceId ??= Guid.NewGuid().ToString("N");
 

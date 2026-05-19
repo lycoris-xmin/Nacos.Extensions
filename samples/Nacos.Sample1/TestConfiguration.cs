@@ -1,5 +1,5 @@
-﻿using Lycoris.Base.Extensions;
-using Lycoris.Nacos.Extensions;
+﻿using Lycoris.Nacos.Extensions;
+using Newtonsoft.Json;
 
 namespace Nacos.Sample1
 {
@@ -36,7 +36,7 @@ namespace Nacos.Sample1
         /// <param name="config"></param>
         public override void Received(TestConfiguration? config)
         {
-            Console.WriteLine("Post.Galaxy.Configuration" + config.ToJson());
+            Console.WriteLine("Post.Galaxy.Configuration" + JsonConvert.SerializeObject(config));
 
             this.AnonymousAvatar = config?.AnonymousAvatar ?? new List<string>();
             this.PostBubble = config?.PostBubble ?? new Dictionary<int, string>();

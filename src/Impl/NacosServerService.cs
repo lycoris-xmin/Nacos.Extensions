@@ -32,7 +32,7 @@ namespace Lycoris.Nacos.Extensions.Impl
 
             var host = $"{instance.Ip}:{instance.Port}";
 
-            return (instance.Metadata.TryGetValue("secure", out _) ? $"https://{host}" : $"http://{host}") ?? "";
+            return instance.Metadata.TryGetValue("secure", out _) ? $"https://{host}" : $"http://{host}";
         }
     }
 }

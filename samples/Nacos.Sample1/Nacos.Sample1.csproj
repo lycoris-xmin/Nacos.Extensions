@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Lycoris.Nacos.Extensions\Lycoris.Nacos.Extensions.csproj" />
+    <ProjectReference Include="..\..\src\Lycoris.Nacos.Extensions.csproj" />
   </ItemGroup>
 
 </Project>

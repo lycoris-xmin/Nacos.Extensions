@@ -1,5 +1,4 @@
-﻿using Lycoris.Base.Extensions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Text;
@@ -113,7 +112,7 @@ namespace Lycoris.Nacos.Extensions.Impl
                 sb.AppendFormat("{0}:{1};", key, value);
             }
 
-            _logger?.LogInformation($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - response headers:[{sb.ToString().TrimEnd(';')}]");
+            _logger?.LogInformation($"{GetTraceId(traceId)}NacosHttpClient[{requestId}] - request headers:[{sb.ToString().TrimEnd(';')}]");
         }
 
         /// <summary>
@@ -201,6 +200,6 @@ namespace Lycoris.Nacos.Extensions.Impl
         /// </summary>
         /// <param name="traceId"></param>
         /// <returns></returns>
-        private static string GetTraceId(string? traceId) => traceId.IsNullOrEmpty() ? "" : $"{traceId} - ";
+        private static string GetTraceId(string? traceId) => string.IsNullOrEmpty(traceId) ? "" : $"{traceId} - ";
     }
 }

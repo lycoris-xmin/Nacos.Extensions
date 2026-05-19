@@ -142,6 +142,44 @@
         Task<NacosHttpResponse> HttpPutAsync(string groupName, string serviceName, string? url = null, string? body = null);
 
         /// <summary>
+        /// Patch请求
+        /// </summary>
+        /// <param name="groupName"></param>
+        /// <param name="serviceName"></param>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        NacosHttpResponse HttpPatch(string groupName, string serviceName, string? body = null);
+
+        /// <summary>
+        /// Patch请求
+        /// </summary>
+        /// <param name="groupName"></param>
+        /// <param name="serviceName"></param>
+        /// <param name="url"></param>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        NacosHttpResponse HttpPatch(string groupName, string serviceName, string? url = null, string? body = null);
+
+        /// <summary>
+        /// Patch请求
+        /// </summary>
+        /// <param name="groupName"></param>
+        /// <param name="serviceName"></param>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        Task<NacosHttpResponse> HttpPatchAsync(string groupName, string serviceName, string? body = null);
+
+        /// <summary>
+        /// Patch请求
+        /// </summary>
+        /// <param name="groupName"></param>
+        /// <param name="serviceName"></param>
+        /// <param name="url"></param>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        Task<NacosHttpResponse> HttpPatchAsync(string groupName, string serviceName, string? url = null, string? body = null);
+
+        /// <summary>
         /// Delete请求
         /// </summary>
         /// <param name="groupName"></param>
@@ -202,6 +240,6 @@
         /// </summary>
         /// <param name="requests"></param>
         /// <returns></returns>
-        Task<NacosHttpResponse[]?> MultipleHttpRequestAsync(params NacosMultipleHttpRequest[] requests);
+        Task<NacosHttpResponse[]> MultipleHttpRequestAsync(params NacosMultipleHttpRequest[] requests);
     }
 }

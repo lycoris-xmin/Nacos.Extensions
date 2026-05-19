@@ -1,5 +1,4 @@
-﻿using Lycoris.Base.Extensions;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 
 namespace Lycoris.Nacos.Extensions
 {
@@ -25,8 +24,8 @@ namespace Lycoris.Nacos.Extensions
                 throw new ArgumentNullException(nameof(Configuration));
 
             var value = ConfigurationBinder.GetValue(Configuration, key, defaultValue);
-            if (value.IsNullOrEmpty())
-                return defaultValue.Trim();
+            if (string.IsNullOrEmpty(value))
+                return defaultValue?.Trim() ?? "";
             else
                 return value!.Trim();
         }

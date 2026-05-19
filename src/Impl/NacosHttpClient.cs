@@ -1,7 +1,8 @@
-﻿using Lycoris.Base.Extensions;
-using Lycoris.Nacos.Extensions.Exceptions;
+﻿using Lycoris.Nacos.Extensions.Exceptions;
 using Lycoris.Nacos.Extensions.HttpRequest;
 using Lycoris.Nacos.Extensions.HttpRequest.Options;
+using Lycoris.Nacos.Extensions.Resilience;
+using Lycoris.Nacos.Extensions.Tracing;
 using Microsoft.Extensions.DependencyInjection;
 using Nacos.V2;
 using System.Net.Http.Headers;
@@ -21,6 +22,8 @@ namespace Lycoris.Nacos.Extensions.Impl
 
         private readonly INacosNamingService _nacosNamingService;
         private readonly INacosHttpClientLogger? _logger;
+        private readonly INacosTracing? _tracing;
+        private readonly NacosResiliencePipeline? _resilience;
 
         /// <summary>
         /// 请求唯一标识
@@ -35,6 +38,8 @@ namespace Lycoris.Nacos.Extensions.Impl
         {
             _nacosNamingService = provider.GetService<INacosNamingService>()!;
             _logger = provider.GetService<INacosHttpClientLogger>();
+            _tracing = provider.GetService<INacosTracing>();
+            _resilience = provider.GetService<NacosResiliencePipeline>();
         }
 
         /// <summary>
@@ -276,6 +281,80 @@ namespace Lycoris.Nacos.Extensions.Impl
         }
 
         /// <summary>
+        /// Patch请求
+        /// </summary>
+        /// <param name="groupName"></param>
+        /// <param name="serviceName"></param>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        public NacosHttpResponse HttpPatch(string groupName, string serviceName, string? body = null) => HttpPatch(groupName, serviceName, null, body);
+
+        /// <summary>
+        /// Patch请求
+        /// </summary>
+        /// <param name="groupName"></param>
+        /// <param name="serviceName"></param>
+        /// <param name="url"></param>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        public NacosHttpResponse HttpPatch(string groupName, string serviceName, string? url = null, string? body = null)
+        {
+            var host = GetHealthyInstanceAsync(groupName, serviceName, url).GetAwaiter().GetResult();
+
+            var request = DefaultMapHttpRequestMessage(host, HttpMethod.Patch, body);
+
+            if (!string.IsNullOrEmpty(body) && request.Content != null)
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            var requestId = Guid.NewGuid().ToString("N");
+
+            _logger?.RequestLog(TraceId, requestId, request, body);
+
+            var response = HttpRequest(request);
+
+            _logger?.ResponseLog(TraceId, requestId, response);
+
+            return response;
+        }
+
+        /// <summary>
+        /// Patch请求
+        /// </summary>
+        /// <param name="groupName"></param>
+        /// <param name="serviceName"></param>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        public async Task<NacosHttpResponse> HttpPatchAsync(string groupName, string serviceName, string? body = null) => await HttpPatchAsync(groupName, serviceName, null, body);
+
+        /// <summary>
+        /// Patch请求
+        /// </summary>
+        /// <param name="groupName"></param>
+        /// <param name="serviceName"></param>
+        /// <param name="url"></param>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        public async Task<NacosHttpResponse> HttpPatchAsync(string groupName, string serviceName, string? url = null, string? body = null)
+        {
+            var host = await GetHealthyInstanceAsync(groupName, serviceName, url);
+
+            var request = DefaultMapHttpRequestMessage(host, HttpMethod.Patch, body);
+
+            if (!string.IsNullOrEmpty(body) && request.Content != null)
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            var requestId = Guid.NewGuid().ToString("N");
+
+            _logger?.RequestLog(TraceId, requestId, request, body);
+
+            var response = await HttpRequestAsync(request);
+
+            _logger?.ResponseLog(TraceId, requestId, response);
+
+            return response;
+        }
+
+        /// <summary>
         /// Delete请求
         /// </summary>
         /// <param name="groupName"></param>
@@ -358,24 +437,41 @@ namespace Lycoris.Nacos.Extensions.Impl
         /// <returns></returns>
         public NacosHttpResponse HttpRequest(string groupName, string serviceName, Action<NacosHttpRequest> configure)
         {
-            var host = GetHealthyInstanceAsync(groupName, serviceName).GetAwaiter().GetResult();
+            var span = _tracing?.StartSpan(serviceName, "CUSTOM", null);
+            try
+            {
+                var host = GetHealthyInstanceAsync(groupName, serviceName).GetAwaiter().GetResult();
 
-            var option = new NacosHttpRequest(host);
-            configure(option);
+                var option = new NacosHttpRequest(host);
+                span?.PropagateHeaders((key, value) => option.AddHeader(key, value));
+                configure(option);
 
-            var request = option.BuildHttpRequestMessage();
+                span?.SetTag("nacos.group", groupName);
+                span?.SetTag("http.url", option.Url ?? "");
+                span?.SetTag("http.method", option.HttpMethod?.Method ?? "GET");
 
-            var requestOption = option.BuildHttpClientHandler();
+                var request = option.BuildHttpRequestMessage();
+                var requestOption = option.BuildHttpClientHandler();
+                var requestId = Guid.NewGuid().ToString("N");
 
-            var requestId = Guid.NewGuid().ToString("N");
+                _logger?.RequestLog(!string.IsNullOrEmpty(option.TraceId) ? option.TraceId : TraceId, requestId, request, option.ContentBody);
 
-            _logger?.RequestLog(!option.TraceId.IsNullOrEmpty() ? option.TraceId : TraceId, requestId, request, option.ContentBody);
+                var response = _resilience != null
+                    ? _resilience.ExecuteAsync(async () => await HttpRequestAsync(request, requestOption, option.ResponseEncoding)).GetAwaiter().GetResult()
+                    : HttpRequest(request, requestOption, option.ResponseEncoding);
 
-            var response = HttpRequest(request, requestOption, option.ResponseEncoding);
+                span?.SetTag("http.status_code", ((int)response.HttpStatusCode).ToString());
+                if (!response.Success && response.Exception != null)
+                    span?.SetError(response.Exception);
 
-            _logger?.ResponseLog(!option.TraceId.IsNullOrEmpty() ? option.TraceId : TraceId, requestId, response);
+                _logger?.ResponseLog(!string.IsNullOrEmpty(option.TraceId) ? option.TraceId : TraceId, requestId, response);
 
-            return response;
+                return response;
+            }
+            finally
+            {
+                span?.Dispose();
+            }
         }
 
         /// <summary>
@@ -387,24 +483,41 @@ namespace Lycoris.Nacos.Extensions.Impl
         /// <returns></returns>
         public async Task<NacosHttpResponse> HttpRequestAsync(string groupName, string serviceName, Action<NacosHttpRequest> configure)
         {
-            var host = await GetHealthyInstanceAsync(groupName, serviceName);
+            var span = _tracing?.StartSpan(serviceName, "CUSTOM", null);
+            try
+            {
+                var host = await GetHealthyInstanceAsync(groupName, serviceName);
 
-            var option = new NacosHttpRequest(host);
-            configure(option);
+                var option = new NacosHttpRequest(host);
+                span?.PropagateHeaders((key, value) => option.AddHeader(key, value));
+                configure(option);
 
-            var request = option.BuildHttpRequestMessage();
+                span?.SetTag("nacos.group", groupName);
+                span?.SetTag("http.url", option.Url ?? "");
+                span?.SetTag("http.method", option.HttpMethod?.Method ?? "GET");
 
-            var requestOption = option.BuildHttpClientHandler();
+                var request = option.BuildHttpRequestMessage();
+                var requestOption = option.BuildHttpClientHandler();
+                var requestId = Guid.NewGuid().ToString("N");
 
-            var requestId = Guid.NewGuid().ToString("N");
+                _logger?.RequestLog(!string.IsNullOrEmpty(option.TraceId) ? option.TraceId : TraceId, requestId, request, option.ContentBody);
 
-            _logger?.RequestLog(!option.TraceId.IsNullOrEmpty() ? option.TraceId : TraceId, requestId, request, option.ContentBody);
+                var response = _resilience != null
+                    ? await _resilience.ExecuteAsync(async () => await HttpRequestAsync(request, requestOption, option.ResponseEncoding))
+                    : await HttpRequestAsync(request, requestOption, option.ResponseEncoding);
 
-            var response = await HttpRequestAsync(request, requestOption, option.ResponseEncoding);
+                span?.SetTag("http.status_code", ((int)response.HttpStatusCode).ToString());
+                if (!response.Success && response.Exception != null)
+                    span?.SetError(response.Exception);
 
-            _logger?.ResponseLog(!option.TraceId.IsNullOrEmpty() ? option.TraceId : TraceId, requestId, response);
+                _logger?.ResponseLog(!string.IsNullOrEmpty(option.TraceId) ? option.TraceId : TraceId, requestId, response);
 
-            return response;
+                return response;
+            }
+            finally
+            {
+                span?.Dispose();
+            }
         }
 
         /// <summary>
@@ -412,20 +525,20 @@ namespace Lycoris.Nacos.Extensions.Impl
         /// </summary>
         /// <param name="requests"></param>
         /// <returns></returns>
-        public async Task<NacosHttpResponse[]?> MultipleHttpRequestAsync(params NacosMultipleHttpRequest[] requests)
+        public async Task<NacosHttpResponse[]> MultipleHttpRequestAsync(params NacosMultipleHttpRequest[] requests)
         {
             if (requests == null || requests.Length == 0)
-                return null;
+                return Array.Empty<NacosHttpResponse>();
 
-            var valid = requests.Where(x => x.GroupName.IsNullOrEmpty() || x.ServiceName.IsNullOrEmpty() || x.Option == null).FirstOrDefault();
-            if (valid != null)
+            for (int i = 0; i < requests.Length; i++)
             {
-                if (valid.GroupName.IsNullOrEmpty())
+                var req = requests[i];
+                if (string.IsNullOrEmpty(req.GroupName))
                     throw new MultipleHttpRequestException();
-                else if (valid.ServiceName.IsNullOrEmpty())
-                    throw new MultipleHttpRequestException(valid.GroupName!);
-                else
-                    throw new MultipleHttpRequestException(valid.GroupName!, valid.ServiceName!);
+                if (string.IsNullOrEmpty(req.ServiceName))
+                    throw new MultipleHttpRequestException(req.GroupName!);
+                if (req.Option == null)
+                    throw new MultipleHttpRequestException(req.GroupName!, req.ServiceName!);
             }
 
             var tasks = new Task<NacosHttpResponse>[requests.Length];
@@ -461,7 +574,7 @@ namespace Lycoris.Nacos.Extensions.Impl
             if (!string.IsNullOrEmpty(url))
                 tmp.AppendFormat("/{0}", url.TrimStart('/'));
             if (!string.IsNullOrEmpty(querying))
-                tmp.AppendFormat("?{0}", HttpUtility.UrlEncode(querying.TrimStart('?'), Encoding.UTF8));
+                tmp.AppendFormat("?{0}", querying.TrimStart('?'));
 
             return tmp.ToString();
         }

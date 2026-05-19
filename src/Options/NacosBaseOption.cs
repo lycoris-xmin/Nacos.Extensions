@@ -1,5 +1,4 @@
-﻿using Lycoris.Base.Extensions;
-
+﻿
 namespace Lycoris.Nacos.Extensions.Options
 {
     /// <summary>
@@ -69,7 +68,7 @@ namespace Lycoris.Nacos.Extensions.Options
         {
             get
             {
-                if (!this.Server.HasValue())
+                if (this.Server == null || this.Server.Count == 0)
                     throw new ArgumentNullException(nameof(this.Server));
 
                 return true;

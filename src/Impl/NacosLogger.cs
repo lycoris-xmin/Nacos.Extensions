@@ -1,5 +1,4 @@
-﻿
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace Lycoris.Nacos.Extensions.Impl
 {
@@ -42,13 +41,13 @@ namespace Lycoris.Nacos.Extensions.Impl
         /// 
         /// </summary>
         /// <param name="message"></param>
-        public void Error(string message) => _logger?.LogWarning("{message}", message);
+        public void Error(string message) => _logger?.LogError("{message}", message);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="message"></param>
         /// <param name="ex"></param>
-        public void Error(string message, Exception ex) => _logger?.LogWarning(ex, "{message}", message);
+        public void Error(string message, Exception ex) => _logger?.LogError(ex, "{message}", message);
     }
 }
